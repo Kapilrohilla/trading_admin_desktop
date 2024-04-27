@@ -46,21 +46,22 @@ public class BrokerAdmin extends JFrame {
 //        savedLoginCredentials.logout()
         String token = savedLoginCredentials.retrieveToken();
         Config.BASE_URL = savedLoginCredentials.retrieveBaseurl();
-        System.out.println("token: " + token);
-        JSONObject tokenJSON = new JSONObject(token);
-        JSONObject jsn = tokenJSON.getJSONObject("admin");
-        this.adminId = jsn.getString("_id");
-        System.out.println("adminId: " + adminId);
         if ("not found".equals(token) || "not found".equals(Config.BASE_URL)) {
             dispose();
             new AuthContainer(0).setVisible(true);
         } else {
+            System.out.println("token: " + token);
+            JSONObject tokenJSON = new JSONObject(token);
+            JSONObject jsn = tokenJSON.getJSONObject("admin");
+            this.adminId = jsn.getString("_id");
+            System.out.println("adminId: " + adminId);
             setTitle("Broker Admin");
             setState(MAXIMIZED_BOTH);
             menubarsetup();
             toolbar();
             menusetup();
             framesetup();
+
         }
 
     }

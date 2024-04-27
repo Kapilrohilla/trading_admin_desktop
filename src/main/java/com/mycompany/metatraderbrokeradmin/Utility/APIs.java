@@ -97,4 +97,7 @@ public class APIs {
 
     public static String UPDATE_ADMIN = Config.BASE_URL + "update-admin";
 
+    public static String CREATE_GROUP_CATEGORY = Config.BASE_URL + "groupcat";
+    
+    public static String GET_GROUP_CATEGORIES = Config.BASE_URL + "groupcat";
 }

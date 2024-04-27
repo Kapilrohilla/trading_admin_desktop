@@ -270,7 +270,7 @@ public class CommonGroupPage extends javax.swing.JPanel {
 
         jLabel9.setText("Minimum Password Length");
 
-        minPassword.setText("                ");
+        minPassword.setText("8");
 
         jCheckBox7.setText("Force one time password usage");
 

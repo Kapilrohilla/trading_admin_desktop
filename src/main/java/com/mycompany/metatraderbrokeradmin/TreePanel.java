@@ -63,10 +63,11 @@ public class TreePanel extends javax.swing.JPanel {
     JPopupMenu groupPopupMenu = new JPopupMenu();
     JMenuItem addGroupCategory = new JMenuItem("Add Group");
     JMenuItem deleteCategory = new JMenuItem("Delete Group");
-    
+    ArrayList<Categories> groupCategoriesList = new ArrayList<Categories>();
     String symbolId;
     String categoryId;
-    
+    JSONArray groupCategories;
+
     public TreePanel() {
         initComponents();
         groupList.clear();
@@ -79,14 +80,14 @@ public class TreePanel extends javax.swing.JPanel {
         categoryId = "";
         tree();
     }
-    
+
     String getData(String url) {
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
                 .url(url)
                 .build();
         Call call = client.newCall(request);
-        
+
         try {
             Response res = call.execute();
             return res.body().string();
@@ -95,11 +96,11 @@ public class TreePanel extends javax.swing.JPanel {
             return "";
         }
     }
-    
+
     private void tree() {
-        
+
         DefaultMutableTreeNode top = new DefaultMutableTreeNode("Administrator");
-        
+
         DefaultMutableTreeNode support = new DefaultMutableTreeNode("Support Center");
         DefaultMutableTreeNode news = new DefaultMutableTreeNode("News");
         DefaultMutableTreeNode articles = new DefaultMutableTreeNode("Articles");
@@ -113,7 +114,7 @@ public class TreePanel extends javax.swing.JPanel {
         DefaultMutableTreeNode service = new DefaultMutableTreeNode("Service Desk");
         DefaultMutableTreeNode assistant = new DefaultMutableTreeNode("Online Assistant");
         DefaultMutableTreeNode search = new DefaultMutableTreeNode("Search");
-        
+
         support.add(news);
         support.add(articles);
         support.add(leads);
@@ -127,7 +128,18 @@ public class TreePanel extends javax.swing.JPanel {
         support.add(news);
         support.add(assistant);
         support.add(search);
-        
+
+        String apiData = getData(APIs.GET_GROUP_CATEGORIES);
+        System.out.println("apiData: " + apiData);
+        JSONObject gc_JSON = new JSONObject(apiData);
+//        gc_JSON.getString("")
+        boolean gc_JSON_status = gc_JSON.getBoolean("status");
+        if (gc_JSON_status) {
+            groupCategories = gc_JSON.getJSONArray("categories");
+            System.out.println("cats: " + groupCategories);
+
+        }
+
         DefaultMutableTreeNode server = new DefaultMutableTreeNode("Servers");
         DefaultMutableTreeNode meta = new DefaultMutableTreeNode("Main Trade Server");
 
@@ -151,17 +163,17 @@ public class TreePanel extends javax.swing.JPanel {
         DefaultMutableTreeNode symbols = new DefaultMutableTreeNode("Symbols");
         DefaultMutableTreeNode spreads = new DefaultMutableTreeNode("Spreads");
         DefaultMutableTreeNode chart = new DefaultMutableTreeNode("Chart & Ticks");
-        
+
         DefaultMutableTreeNode historychart = new DefaultMutableTreeNode("1 Min History Charts");
         DefaultMutableTreeNode bidlasttick = new DefaultMutableTreeNode("Bid/Ask/Last Ticks");
         DefaultMutableTreeNode synchronization = new DefaultMutableTreeNode("Synchornization");
         DefaultMutableTreeNode CSV = new DefaultMutableTreeNode("CSV");
-        
+
         chart.add(historychart);
         chart.add(bidlasttick);
         chart.add(synchronization);
         chart.add(CSV);
-        
+
         DefaultMutableTreeNode subscriptions = new DefaultMutableTreeNode("Subscriptions");
 
         // DefaultMutableTreeNode allocations = new DefaultMutableTreeNode("Allocations");
@@ -173,11 +185,11 @@ public class TreePanel extends javax.swing.JPanel {
         clients.add(client);
         clients.add(manager);
         clients.add(tradingacc);
-        
+
         DefaultMutableTreeNode position = new DefaultMutableTreeNode("Position");
         DefaultMutableTreeNode order = new DefaultMutableTreeNode("Order");
         DefaultMutableTreeNode deals = new DefaultMutableTreeNode("Deals");
-        
+
         orders.add(position);
         orders.add(order);
         orders.add(deals);
@@ -202,32 +214,31 @@ public class TreePanel extends javax.swing.JPanel {
         meta.add(spreads);
         meta.add(chart);
         meta.add(subscriptions);
-        
+
         server.add(meta);
         top.add(server);
         top.add(support);
-        
+
         DefaultMutableTreeNode newGroup = new DefaultMutableTreeNode("New Group");
+        DefaultMutableTreeNode newGroupCategory = new DefaultMutableTreeNode("New Group Category");
+
         groups.add(newGroup);
+        groups.add(newGroupCategory);
         DefaultMutableTreeNode newSymbol = new DefaultMutableTreeNode("New Symbol Group");
+
         DefaultMutableTreeNode bulkUpload = new DefaultMutableTreeNode("Upload Symbols");
         symbols.add(newSymbol);
         symbols.add(bulkUpload);
         tree = new JTree(top);
         tree.setCellRenderer(new MyCustomRenderer());
-        
+
         GroupPanel groupPanel = new GroupPanel();
-
-//        JMenuItem add_menuItem = new JMenuItem("Add Category");
         JMenuItem edit_menuItem = new JMenuItem("Add Symbol");
-//        JMenuItem delete_menuItem = new JMenuItem("Delete Category");
 
-//        newSymbolPopupMenu.add(add_menuItem);
         newSymbolPopupMenu.add(edit_menuItem);
-//        newSymbolPopupMenu.add(delete_menuItem);
 
         groupPopupMenu.add(addGroupCategory);
-        
+
         TreeWillExpandListener treeWillExpandListener;
         treeWillExpandListener = new TreeWillExpandListener() {
             @Override
@@ -242,7 +253,7 @@ public class TreePanel extends javax.swing.JPanel {
                 String data = node.getUserObject().toString();
                 System.out.println("WillCollapse: " + data);
             }
-            
+
             @Override
             public void treeWillExpand(TreeExpansionEvent treeExpansionEvent) throws ExpandVetoException {
                 //Get the path of the node that will expand
@@ -253,7 +264,7 @@ public class TreePanel extends javax.swing.JPanel {
 
                 //Print the name of the node
                 String data = node.getUserObject().toString();
-                
+
                 long lo = System.currentTimeMillis();
                 if ("Groups".equals(data)) {
                     String apiUrl = APIs.GET_CATEGORY_GROUPS;
@@ -263,13 +274,45 @@ public class TreePanel extends javax.swing.JPanel {
                     JSONObject json = new JSONObject(responseData);
 //                    JSONArray js = json.getJSONArray("message");
                     JSONObject jso = json.getJSONObject("p_gs");
+                    System.out.println("p_gs: " + jso);
                     var map = jso.keys();
                     while (map.hasNext()) {
                         var key = map.next().toString();
                         DefaultMutableTreeNode cat = new DefaultMutableTreeNode(key);
-//                        groupList.add(cat);
                         groups.add(cat);
-//                        System.out.println("keys: " + key );
+                        tree.addMouseListener(new MouseAdapter() {
+                            @Override
+                            public void mouseClicked(MouseEvent e) {
+                                if (e.getButton() == MouseEvent.BUTTON3) {
+                                    TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+                                    // System.out.println(path.getLastPathComponent());
+                                    groupPopupMenu.show(tree, getX(), e.getY());
+                                    for (int i = 0; i < groupCategories.length(); i++) {
+                                        JSONObject gc = groupCategories.getJSONObject(i);
+                                        String title = gc.getString("title");
+                                        boolean isEqual = title.equalsIgnoreCase(path.getLastPathComponent().toString());
+                                        if (isEqual) {
+                                            String catId = gc.getString("_id");
+                                            groupId = catId;
+                                            System.out.println("catID: " + catId);
+                                            break;
+                                        }
+                                    }
+//                                        if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
+//                                            DefaultMutableTreeNode clickedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
+//                                            if (clickedNode.getUserObject().equals(grpName)) {
+//                                                System.out.println("Selected node: " + grpName);
+//                                                addGroupCategory.addActionListener((popupEvent) -> {
+//                                                    // System.out.println("called");
+//                                                    createGroupCategoryPopup(groupId);
+//                                                });
+//                                                groupPopupMenu.show(tree, getX(), e.getY());
+//
+//                                            }
+//                                        }
+                                }
+                            }
+                        });
                         JSONArray grps = jso.getJSONArray(key);
                         for (int i = 0; i < grps.length(); i++) {
                             JSONObject grp = grps.getJSONObject(i);
@@ -280,101 +323,16 @@ public class TreePanel extends javax.swing.JPanel {
                             DefaultMutableTreeNode group = new DefaultMutableTreeNode(grpName);
                             groupList.add(grp);
                             cat.add(group);
-                            tree.addMouseListener(new MouseAdapter() {
-                                public void mouseClicked(MouseEvent e) {
-                                    if (e.getButton() == MouseEvent.BUTTON3) {
-                                        TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-                                        if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
-                                            DefaultMutableTreeNode clickedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
-                                            if (clickedNode.getUserObject().equals(grpName)) {
-                                                System.out.println("Selected node: " + grpName);
-                                                addGroupCategory.addActionListener((popupEvent) -> {
-                                                    // System.out.println("called");
-                                                    createGroupCategoryPopup(groupId);
-                                                });
-                                                groupPopupMenu.show(tree, getX(), e.getY());
-                                                
-                                            }
-                                        }
-                                    }
-                                }
-                            });
+
                         }
-
-//                         for (int i = 0; i < js.length(); i++) {
-////                        JSONObject jsonobject = js.getJSONObject(i);
-////                        String groupName = jsonobject.getString("Name");
-////                        String groupId = jsonobject.getString("_id");
-////                        DefaultMutableTreeNode group = new DefaultMutableTreeNode(groupName);
-////                        groupList.add(jsonobject);
-////                        groups.add(group);
-////
-//////                        tree.addMouseListener(new MouseAdapter() {
-//////                            @Override
-//////                            public void mouseClicked(MouseEvent e) {
-//////                                if (e.getButton() == MouseEvent.BUTTON3) {
-//////                                    TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-//////                                    if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
-//////                                        DefaultMutableTreeNode clickedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
-//////                                        if (clickedNode.getUserObject().equals(groupName)) {
-//////                                            System.out.println("Selected node: " + groupName);
-//////                                              addGroupCategory.addActionListener((popupEvent) -> {
-//////                                                // System.out.println("called");
-//////                                                createGroupCategoryPopup( groupId);
-//////                                            });
-//////                                            groupPopupMenu.show(tree, getX(), e.getY());
-//////
-//////                                        }
-//////                                    }
-//////                                }
-//////                            }
-//////                        });
-////                        recurs
-//                         }
-//                    }
                     }
-//                    Map<String, JSONObject> map = (Map<String, JSONObject>) jso.getMap();
-//                    ArrayList<String> list = new ArrayList<String>(map.keySet());
-//                    System.out.println(list);
-
-//                    for (int i = 0; i < js.length(); i++) {
-//                        JSONObject jsonobject = js.getJSONObject(i);
-//                        String groupName = jsonobject.getString("Name");
-//                        String groupId = jsonobject.getString("_id");
-//                        DefaultMutableTreeNode group = new DefaultMutableTreeNode(groupName);
-//                        groupList.add(jsonobject);
-//                        groups.add(group);
-//
-////                        tree.addMouseListener(new MouseAdapter() {
-////                            @Override
-////                            public void mouseClicked(MouseEvent e) {
-////                                if (e.getButton() == MouseEvent.BUTTON3) {
-////                                    TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-////                                    if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
-////                                        DefaultMutableTreeNode clickedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
-////                                        if (clickedNode.getUserObject().equals(groupName)) {
-////                                            System.out.println("Selected node: " + groupName);
-////                                              addGroupCategory.addActionListener((popupEvent) -> {
-////                                                // System.out.println("called");
-////                                                createGroupCategoryPopup( groupId);
-////                                            });
-////                                            groupPopupMenu.show(tree, getX(), e.getY());
-////
-////                                        }
-////                                    }
-////                                }
-////                            }
-////                        });
-//                        recursiongroup(jsonobject, group);
-//
-//                    }
                 } else if ("Symbols".equals(data)) {
                     String apiUrl = APIs.GET_SYMBOL_CATEGORY + "?timestamp=" + lo;
                     String responseData = getData(apiUrl);
                     System.out.println("Response" + responseData);
                     JSONObject json = new JSONObject(responseData);
                     JSONArray js = json.getJSONArray("message");
-                    
+
                     for (int i = 0; i < js.length(); i++) {
                         System.out.println("working....");
                         JSONObject jsonobject = js.getJSONObject(i);
@@ -382,32 +340,9 @@ public class TreePanel extends javax.swing.JPanel {
                         String symbolId = jsonobject.getString("_id");
                         categoryList.add(new GroupModel(symbolId, symbol));
                         JSONArray symbolarray = jsonobject.getJSONArray("symbols");
-                        
+
                         DefaultMutableTreeNode group = new DefaultMutableTreeNode(symbol);
 
-//                        tree.addMouseListener(new MouseAdapter() {
-//                            @Override
-//                            public void mouseClicked(MouseEvent e) {
-//                                if (e.getButton() == MouseEvent.BUTTON3) {
-//                                    TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-//                                    if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
-//                                        DefaultMutableTreeNode clickedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
-//                                        if (clickedNode.getUserObject().equals(symbol)) {
-//                                            System.out.println("Selected node: " + symbol);
-//                                            add_menuItem.addActionListener((popupEvent) -> {
-//                                                System.out.println("called");
-//                                                createSymbolCategoryPopup(manager, symbolId, group);
-//                                            });
-//                                            edit_menuItem.addActionListener((popupEvent) -> {
-//                                                new SixTabFrame(symbolId).setVisible(true);
-//                                            });
-//                                            newSymbolPopupMenu.show(tree, getX(), e.getY());
-//
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        });
                         if (symbolarray.length() > 0) {
                             for (int j = 0; j < symbolarray.length(); j++) {
                                 JSONObject symbolData = symbolarray.getJSONObject(j);
@@ -431,7 +366,6 @@ public class TreePanel extends javax.swing.JPanel {
             if (selectedPath != null) {
                 String selectedNode = selectedPath.getLastPathComponent().toString();
                 System.out.println("Selected node: " + selectedNode);
-                
                 if (selectedNode.equalsIgnoreCase("groups")) {
                     BrokerAdmin.splitPane.setRightComponent(new GroupPanel());
                 } else if (selectedNode.equalsIgnoreCase("symbols")) {
@@ -470,6 +404,29 @@ public class TreePanel extends javax.swing.JPanel {
                     BrokerAdmin.splitPane.setRightComponent(new AllocationTable());
                 } else if (selectedNode.equalsIgnoreCase("New Group")) {
                     new GroupConfig();
+                } else if (selectedNode.equalsIgnoreCase("New Group Category")) {
+                    String input_cname = JOptionPane.showInputDialog("Enter category Name.");
+                    System.out.println("input_cname: " + input_cname);
+                    JSONObject payload = new JSONObject();
+                    payload.put("title", input_cname);
+                    String cc_cat_api = APIs.CREATE_GROUP_CATEGORY;
+                    OkHttpClient postclient = new OkHttpClient();
+                    MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+                    RequestBody reqBody = RequestBody.create(JSON, payload.toString());
+                    Request req = new Request.Builder().url(cc_cat_api).post(reqBody).build();
+
+                    try {
+                        Call newCall = postclient.newCall(req);
+                        Response res = newCall.execute();
+                        if (res.isSuccessful()) {
+                            String body = res.body().string();
+                            System.out.println("body: " + body);
+
+                        }
+                    } catch (IOException ex) {
+                        System.out.println("creating group category: " + ex.getMessage());
+                    }
+
                 } else if (selectedNode.equalsIgnoreCase("DataFeeds")) {
                     BrokerAdmin.splitPane.setRightComponent(new AllocationTable());
                 } else if (selectedNode.equalsIgnoreCase("Network Cluster")) {
@@ -508,34 +465,34 @@ public class TreePanel extends javax.swing.JPanel {
                         BrokerAdmin.splitPane.setRightComponent(new StartPage());
                     }
                 }
-                
+
             }
         });
         // tree listner for group node
-        tree.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON3) {
-                    
-                    TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-                    if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
-                        DefaultMutableTreeNode clickedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
-                        for (int i = 0; i < groupList.size(); i++) {
-                            JSONObject jsoo = groupList.get(i);
-                            if (clickedNode.getUserObject().equals(jsoo.getString("Name"))) {
-                                System.out.println("Selected node: " + jsoo.getString("Name"));
-                                groupId = jsoo.getString("_id");
-
-                                //saddGroupCategory.removeActionListener(action);
-                                groupPopupMenu.show(tree, getX(), e.getY());
-                                break;
-                            }
-                        }
-                        
-                    }
-                }
-            }
-        });
+//        tree.addMouseListener(new MouseAdapter() {
+//            @Override
+//            public void mouseClicked(MouseEvent e) {
+//                if (e.getButton() == MouseEvent.BUTTON3) {
+//
+//                    TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+//                    if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
+//                        DefaultMutableTreeNode clickedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
+//                        for (int i = 0; i < groupList.size(); i++) {
+//                            JSONObject jsoo = groupList.get(i);
+//                            if (clickedNode.getUserObject().equals(jsoo.getString("Name"))) {
+//                                System.out.println("Selected node: " + jsoo.getString("Name"));
+//                                groupId = jsoo.getString("_id");
+//
+//                                //saddGroupCategory.removeActionListener(action);
+//                                groupPopupMenu.show(tree, getX(), e.getY());
+//                                break;
+//                            }
+//                        }
+//
+//                    }
+//                }
+//            }
+//        });
         ActionListener action = new ActionListener() {
             public void actionPerformed(ActionEvent popupEvent) {
                 createGroupCategoryPopup(groupId);
@@ -551,16 +508,14 @@ public class TreePanel extends javax.swing.JPanel {
                     TreePath path = tree.getPathForLocation(e.getX(), e.getY());
                     if (path != null && path.getLastPathComponent() instanceof DefaultMutableTreeNode) {
                         DefaultMutableTreeNode clickedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
-                        
+
                         for (int i = 0; i < categoryList.size(); i++) {
-                            // System.out.println("name: " + symbolList.get(i));
                             categoryId = categoryList.get(i).getId();
                             String name = categoryList.get(i).getName();
                             System.out.println("name: " + name);
                             if (clickedNode.getUserObject().equals(name)) {
                                 System.out.println("Selected node: " + name);
                                 newSymbolPopupMenu.show(tree, getX(), e.getY());
-                                
                                 break;
                             }
                         }
@@ -570,7 +525,7 @@ public class TreePanel extends javax.swing.JPanel {
         });
         setLayout(new BorderLayout());
         JScrollPane scrollPane = new JScrollPane(tree);
-        
+
         add(scrollPane, BorderLayout.CENTER);
 //        add_menuItem.addActionListener(
 //                (popupEvent) -> {
@@ -584,7 +539,8 @@ public class TreePanel extends javax.swing.JPanel {
                 }
         );
     }
-    
+
+    /*
     private void recursiongroup(JSONObject jsonobject, DefaultMutableTreeNode groups) {
         JSONArray jxa = jsonobject.getJSONArray("nestedSymbols");
         if (jxa.length() != 0) {
@@ -596,14 +552,14 @@ public class TreePanel extends javax.swing.JPanel {
                 DefaultMutableTreeNode group = new DefaultMutableTreeNode(groupName);
 //                        groupList.add(jsonobject);
                 groups.add(group);
-                
+
                 if (jsoa.getJSONArray("nestedSymbols").length() != 0) {
                     recursiongroup(jsoa, group);
                 }
             }
         }
     }
-    
+
     private void recursionsymbol(JSONObject jsonobject, DefaultMutableTreeNode groups) {
         JSONArray jxa = jsonobject.getJSONArray("nestedCategories");
         // System.out.println("symbol node: " + groups);
@@ -612,7 +568,7 @@ public class TreePanel extends javax.swing.JPanel {
                 JSONObject jsoa = jxa.getJSONObject(i);
                 String symbolName = jsoa.getString("name");
                 DefaultMutableTreeNode symbol = new DefaultMutableTreeNode(symbolName);
-                
+
                 groups.add(symbol);
                 System.out.println("symbol added successfully");
                 tree.addMouseListener(new MouseAdapter() {
@@ -625,7 +581,7 @@ public class TreePanel extends javax.swing.JPanel {
                                 if (clickedNode.getUserObject().equals(symbol)) {
                                     System.out.println("Selected node: " + symbol);
                                     newSymbolPopupMenu.show(tree, getX(), e.getY());
-                                    
+
                                 }
                             }
                         }
@@ -638,20 +594,20 @@ public class TreePanel extends javax.swing.JPanel {
             }
         }
     }
-
+     */
     //    private void createSymbolCategoryPopup(DefaultMutableTreeNode manager, String subcat, DefaultMutableTreeNode currentNode) {
     private void createSymbolCategoryPopup(DefaultMutableTreeNode manager, String subcat) {
         String categoryName = JOptionPane.showInputDialog(this, "Symbol Category");
-        
+
         MediaType JSON = MediaType.parse("application/json; charset=utf-8");
         JSONObject jsnObj = new JSONObject();
         jsnObj.put("name", categoryName);
         jsnObj.put("subcat", subcat);
         OkHttpClient client = new OkHttpClient();
-        
+
         RequestBody body = RequestBody.create(JSON, jsnObj.toString());
         Request request = new Request.Builder().url(APIs.ADD_SYMBOL_CAT).method("POST", body).build();
-        
+
         System.out.println(body);
         try {
             Response response = client.newCall(request).execute();
@@ -665,15 +621,11 @@ public class TreePanel extends javax.swing.JPanel {
         }
         // DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(categoryName);
     }
-    
-    private void createGroupCategoryPopup(String subcat) {
-        if (subcat == "ROOT") {
-            new GroupConfig();
-        } else {
-            new GroupConfig(0, subcat);
-        }
+
+    private void createGroupCategoryPopup(String HCategory) {
+        new GroupConfig(0, HCategory);
     }
-    
+
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -696,11 +648,11 @@ public class TreePanel extends javax.swing.JPanel {
 }
 
 class MyCustomRenderer extends DefaultTreeCellRenderer {
-    
+
     @Override
     public Component getTreeCellRendererComponent(JTree tree, Object value, boolean isSelected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
         super.getTreeCellRendererComponent(tree, value, isSelected, expanded, leaf, row, hasFocus);
-        
+
         setText(((DefaultMutableTreeNode) value).getUserObject().toString()); // Access node data
 
         addMouseListener(new MouseAdapter() {
@@ -718,7 +670,27 @@ class MyCustomRenderer extends DefaultTreeCellRenderer {
                 }
             }
         });
-        
+
         return this;
     }
+}
+
+class Categories {
+
+    String id;
+    String name;
+
+    public Categories(String id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    String getId() {
+        return this.id;
+    }
+
+    String getName() {
+        return this.name;
+    }
+
 }

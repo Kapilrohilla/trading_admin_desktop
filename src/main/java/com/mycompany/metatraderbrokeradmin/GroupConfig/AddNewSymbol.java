@@ -388,11 +388,17 @@ public class AddNewSymbol extends javax.swing.JDialog {
         String symbolname = common.getjLabel12().getText();
         String cAsk = common.getAskTextField().getText();
         String cBid = common.getBidTextField().getText();
-        float c1 = Float.parseFloat(cAsk);
-        float b1 = Float.parseFloat(cBid);
         JSONObject spreadBalance = new JSONObject();
-        spreadBalance.put("ask", c1);
-        spreadBalance.put("bid", b1);
+        try {
+            float c1 = Float.parseFloat(cAsk);
+            float b1 = Float.parseFloat(cBid);
+
+            spreadBalance.put("ask", c1);
+            spreadBalance.put("bid", b1);
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+
         boolean useDefaultPanelSettings = common.getjCheckBox5().isSelected();
 //        boolean enableMarketDepthFlag = common.getjCheckBox1().isSelected();
 //        boolean useDefaultSpreadFlag = common.getjCheckBox2().isSelected();

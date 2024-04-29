@@ -39,6 +39,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
 import com.mycompany.metatraderbrokeradmin.Customer.clientPanel;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -87,22 +89,47 @@ public class PopupTree4Group extends javax.swing.JDialog {
         long lo = System.currentTimeMillis();
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Groups");
         String apiUrl = APIs.GET_CATEGORY_GROUPS + "?timestamp=" + lo;
+        JTree tree = new JTree();
 
         JSONObject jso = new JSONObject(getData(apiUrl));
-        // System.out.println("jso: " + jso);
-        JSONArray groupData = jso.getJSONArray("message");
+//         System.out.println("jso: " + jso);
+         boolean isOk  = jso.getBoolean("status");
+         if(!isOk){
+             return;
+         }
+         JSONObject pgs = jso.getJSONObject("p_gs");
+                    System.out.println("p_gs: " + jso);
+                    var map = pgs.keys();
+                    while (map.hasNext()) {
+                        var key = map.next().toString();
+                        DefaultMutableTreeNode cat = new DefaultMutableTreeNode(key);
+                        root.add(cat);
+                        JSONArray grps = pgs.getJSONArray(key);
+                        for (int i = 0; i < grps.length(); i++) {
+                            JSONObject grp = grps.getJSONObject(i);
+                            String grpName = grp.getString("Name");
+                            String groupId = grp.getString("_id");
+                            System.out.println("grpName: " + grpName);
+                            System.out.println("grpId: " + groupId);
+                            DefaultMutableTreeNode group = new DefaultMutableTreeNode(grpName);
+                            groupList.add(grp);
+                            cat.add(group);
 
-        for (int i = 0; i < groupData.length(); i++) {
-            JSONObject jsonobject = groupData.getJSONObject(i);
-            // System.out.println("groupLength: " + groupData);
-            String groupName = jsonobject.getString("Name");
-            String groupId = jsonobject.getString("_id");
-            groupList.add(jsonobject);
-            DefaultMutableTreeNode level1Node = new DefaultMutableTreeNode(groupName);
-//            break;
-            root.add(level1Node);
+                        }
+//                    }
+//        JSONArray groupData = jso.getJSONArray("message");
 
-            recursiongroup(jsonobject, level1Node);
+//        for (int i = 0; i < groupData.length(); i++) {
+//            JSONObject jsonobject = groupData.getJSONObject(i);
+//            // System.out.println("groupLength: " + groupData);
+//            String groupName = jsonobject.getString("Name");
+//            String groupId = jsonobject.getString("_id");
+//            groupList.add(jsonobject);
+//            DefaultMutableTreeNode level1Node = new DefaultMutableTreeNode(groupName);
+////            break;
+//            root.add(level1Node);
+//
+//            recursiongroup(jsonobject, level1Node);
         }
 
         JTree jt = new JTree(root);
@@ -163,25 +190,7 @@ public class PopupTree4Group extends javax.swing.JDialog {
         add(jt, BorderLayout.CENTER);
 
     }
-
-    private void recursiongroup(JSONObject jsonobject, DefaultMutableTreeNode groups) {
-        JSONArray jxa = jsonobject.getJSONArray("nestedSymbols");
-        if (jxa.length() != 0) {
-            for (int i = 0; i < jxa.length(); i++) {
-                JSONObject jsoa = jxa.getJSONObject(i);
-                groupList.add(jsoa);
-                String groupId = jsoa.getString("_id");
-                String groupName = jsoa.getString("Name");
-                DefaultMutableTreeNode group = new DefaultMutableTreeNode(groupName);
-//                        groupList.add(jsonobject);
-                groups.add(group);
-
-                if (jsoa.getJSONArray("nestedSymbols").length() != 0) {
-                    recursiongroup(jsoa, group);
-                }
-            }
-        }
-    }
+    
 
     /**
      * This method is called from within the constructor to initialize the form.

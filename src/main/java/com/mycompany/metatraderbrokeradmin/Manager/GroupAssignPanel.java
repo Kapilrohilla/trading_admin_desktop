@@ -228,7 +228,6 @@ public class GroupAssignPanel extends javax.swing.JPanel {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
 //        new ManagerGroupAssign(mid).setVisible(true);
         new PopupTree4Group("GroupAssignManager").setVisible(true);
-
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
@@ -237,17 +236,9 @@ public class GroupAssignPanel extends javax.swing.JPanel {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        String[] selectedIndexData = modelData.get(selectedIndex);
-//
-//        new CommissionsFrame(selectedIndexData, selectedIndex).setVisible(true);
-
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-//        System.out.println("size: " + modelData.size());
-//        System.out.println("modelSize: " + tablemodel.getRowCount());
-//        modelData.remove(selectedIndex);
-
         tablemodel.removeRow(row);
         groupmodelarraylist.remove(row);
         // System.out.println("modelData: " + jarray.toString());

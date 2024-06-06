@@ -100,4 +100,6 @@ public class APIs {
     public static String CREATE_GROUP_CATEGORY = Config.BASE_URL + "groupcat";
     
     public static String GET_GROUP_CATEGORIES = Config.BASE_URL + "groupcat";
+    
+    public static String GET_ADMIN = Config.BASE_URL + "get-admin";
 }

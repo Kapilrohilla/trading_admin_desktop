@@ -5,7 +5,6 @@
 package com.mycompany.metatraderbrokeradmin.Manager;
 
 import com.mycompany.metatraderbrokeradmin.BrokerAdmin;
-import static com.mycompany.metatraderbrokeradmin.Manager.GroupAssignPanel.groupmodelarraylist;
 import com.mycompany.metatraderbrokeradmin.ManagerPanel;
 import com.mycompany.metatraderbrokeradmin.Utility.APIs;
 import java.io.IOException;
@@ -20,7 +19,7 @@ import org.json.JSONObject;
 
 /**
  *
- * @author Lenovo
+ * @author Kapil Rohilla
  */
 public class PermissionsPanel extends javax.swing.JPanel {
 
@@ -32,18 +31,23 @@ public class PermissionsPanel extends javax.swing.JPanel {
     public PermissionsPanel(String mid, JSONArray js) {
         initComponents();
         this.mid = mid;
+        System.out.println("manager: + " + js);
         try {
-            // TODO replace all checkbox true with dynamic values
-//            boolean clients=js.getBoolean("Clients");
-//            boolean orders = js.getBoolean("Orders");
-//            boolean Accounts = js.get
-            jCheckBox3.setSelected(true);
-            jCheckBox4.setSelected(true);
-            jCheckBox5.setSelected(true);
-            jCheckBox6.setSelected(true);
-            jCheckBox7.setSelected(true);
-            jCheckBox8.setSelected(true);
-            jCheckBox9.setSelected(true);
+            JSONObject permission = js.getJSONObject(0);
+            Boolean orderp = permission.getBoolean("Orders");
+            Boolean tradep = permission.getBoolean("Trade");
+            Boolean kycp = permission.getBoolean("Kyc");
+            Boolean clintsp = permission.getBoolean("Clients");
+            Boolean subsp = permission.getBoolean("Subscription");
+            Boolean dealp = permission.getBoolean("Dealing");
+            Boolean accp = permission.getBoolean("Accounts");
+            jCheckBox3.setSelected(clintsp);
+            jCheckBox4.setSelected(orderp);
+            jCheckBox5.setSelected(kycp);
+            jCheckBox6.setSelected(accp);
+            jCheckBox7.setSelected(tradep);
+            jCheckBox8.setSelected(subsp);
+            jCheckBox9.setSelected(dealp);
         } catch (JSONException ex) {
             System.out.println("json exception in permission panel");
             System.out.println(ex.getMessage());

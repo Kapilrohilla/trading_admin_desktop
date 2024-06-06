@@ -100,13 +100,13 @@ public class ManagerPanel extends javax.swing.JPanel {
             String mailBox = "mailBox";//jso.getString("mailBox");
             groups.add(jso.getJSONArray("groups"));
             String group = jso.getJSONArray("groups").toString();
-            try{
-            JSONArray permissions=jso.getJSONArray("permissions");
-            perm.add(permissions);
-            }
-            catch(Exception e)
-            {
+            JSONArray permissions;
+            try {
+                permissions = jso.getJSONArray("permissions");
+                perm.add(permissions);
+            } catch (Exception e) {
                 e.printStackTrace();
+                permissions = new JSONArray();
             }
 //            for(int j=0; j<groups.length(); j++){
 //                if(i==0){
@@ -161,12 +161,9 @@ public class ManagerPanel extends javax.swing.JPanel {
                     doc.open();
                     for (int i = 0; i < js.length(); i++) {
                         JSONObject jso = js.getJSONObject(i);
-//            String id=jso.getString("_id");
-//            idlist.add(id);
                         String name = jso.getString("name");
                         String email = jso.getString("email");
-                        String mailBox = "mailBox";//jso.getString("mailBox");
-//            groups.add(jso.getJSONArray("groups"));
+                        String mailBox = "mailBox";
                         String group = jso.getJSONArray("groups").toString();
                         doc.add(new Paragraph((i + 1) + ". " + name + " : " + email + ": " + ":" + group));
                     }
@@ -201,8 +198,9 @@ public class ManagerPanel extends javax.swing.JPanel {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     int row = jt.rowAtPoint(e.getPoint());
+                    System.out.println("groups: " + groups.get(row));
                     int column = jt.columnAtPoint(e.getPoint());
-                    new ManagerTabs(idlist.get(row), groups.get(row),perm.get(row)).setVisible(true);
+                    new ManagerTabs(idlist.get(row), groups.get(row), perm.get(row)).setVisible(true);
                 } else if (SwingUtilities.isRightMouseButton(e)) {
                     jp.show(e.getComponent(), e.getX(), e.getY());
                 }

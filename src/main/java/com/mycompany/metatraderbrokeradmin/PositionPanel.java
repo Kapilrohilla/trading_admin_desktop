@@ -8,6 +8,7 @@ import com.mycompany.metatraderbrokeradmin.GroupSymbolpopup.PopupTree4Group;
 import com.mycompany.metatraderbrokeradmin.GroupSymbolpopup.PopupTree4Symbol;
 import com.mycompany.metatraderbrokeradmin.Utility.APIs;
 import com.mycompany.metatraderbrokeradmin.SymbolConfig.SixTabFrame;
+import com.mycompany.metatraderbrokeradmin.Utility.Helper;
 import com.mycompany.metatraderbrokeradmin.orderndeals.Orderndealspopup;
 import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
@@ -58,20 +59,36 @@ public class PositionPanel extends javax.swing.JPanel {
     private void tabledata() {
         ArrayList<JSONObject> arraylist = new ArrayList<>();
         DefaultTableModel tableModel = new DefaultTableModel();
-        tableModel.addColumn("Time");
-        tableModel.addColumn("Login");
-        tableModel.addColumn("Position");
-        tableModel.addColumn("Symbol");
+        String[] columns = {"Time", "Login", "Position", "Symbol", "Type", "Volume", "TakeProfit", "StopLoss"};
+        for (String column : columns) {
+            tableModel.addColumn(column);
+        }
+//        tableModel.addColumn("Time");
+//        tableModel.addColumn("Login");
+//        tableModel.addColumn("Position");
+//        tableModel.addColumn("Symbol");
 
         String apiData = getData();
         JSONArray js = new JSONArray(apiData);
         for (int i = 0; i < js.length(); i++) {
             JSONObject jsonobject = js.getJSONObject(i);
-            String time = jsonobject.getString("createdAt");
-            String login = jsonobject.getString("user_id");
-            String position = jsonobject.getString("_id");
-            String symbol = jsonobject.getString("symbol");
-            String data4row[] = {time, login, position, symbol};
+            System.out.println("order json: " + jsonobject);
+//            String time = jsonobject.getString("createdAt");
+            String time = Helper.getJSONString(jsonobject, "createdAt");
+//            String login = jsonobject.getString("user_id");
+            String login = Helper.getJSONString(jsonobject, "user_id");
+//            String position = jsonobject.getString("ticket");
+            String position = Helper.getJSONString(jsonobject, "ticket");
+//            String symbol = jsonobject.getString("symbol");
+            String symbol = Helper.getJSONString(jsonobject, "symbol");
+            int orderType = Helper.getJSONInt(jsonobject, "type");
+            String orderTypeName = Helper.getMappedOrderType(orderType);
+            double volume = Helper.getJSONDouble(jsonobject, "volume");
+            double takeProfit = Helper.getJSONDouble(jsonobject, "takeProfit");
+            double stopLoss = Helper.getJSONDouble(jsonobject, "stopLoss");
+            String takeProfit2show = takeProfit > 0.0 ? takeProfit + "" : "";
+            String stopLoss2show = stopLoss > 0.0 ? stopLoss + "" : "";
+            String data4row[] = {time, login, position, symbol, orderTypeName, volume + "", takeProfit2show, stopLoss2show};
             tableModel.addRow(data4row);
             arraylist.add(jsonobject);
         }

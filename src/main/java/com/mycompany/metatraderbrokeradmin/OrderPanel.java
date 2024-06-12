@@ -22,6 +22,7 @@ import okhttp3.Response;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import com.mycompany.metatraderbrokeradmin.Utility.APIs;
+import com.mycompany.metatraderbrokeradmin.Utility.Helper;
 
 /**
  *
@@ -75,22 +76,27 @@ public class OrderPanel extends javax.swing.JPanel {
         JSONArray js = new JSONArray(apiData);
         ArrayList<JSONObject> arraylist = new ArrayList<>();
         DefaultTableModel tableModel = new DefaultTableModel();
-        tableModel.addColumn("Time");
-        tableModel.addColumn("Login");
-        tableModel.addColumn("Order");
-        tableModel.addColumn("Symbol");
-        tableModel.addColumn("Type");
-        tableModel.addColumn("Volume");
-
+        String columns[] = {"Time", "Login", "Order", "Symbol", "Type", "Volume", "Take Profit", "StopLoss", "Price"};
+        for (String column : columns) {
+            tableModel.addColumn(column);
+        }
         for (int i = 0; i < js.length(); i++) {
             JSONObject jso = js.getJSONObject(i);
-            String time = jso.getString("createdAt");
-            String login = jso.getString("user_id");
-            String order = jso.getString("ticket");
-            String symbol = jso.getString("symbol");
-            String type = jso.getFloat("type") + "";
-            String volume = jso.getFloat("initialVolume") + "";
-            String rowData[] = {time, login, order, symbol, type, volume};
+            System.out.println("order json: " + jso);
+            String time = Helper.getJSONString(jso, "createdAt");
+            String login = Helper.getJSONString(jso, "user_id");
+            String position = Helper.getJSONString(jso, "ticket");
+            String symbol = Helper.getJSONString(jso, "symbol");
+            int orderType = Helper.getJSONInt(jso, "type");
+            String orderTypeName = Helper.getMappedOrderType(orderType);
+            double volume = Helper.getJSONDouble(jso, "volume");
+            double takeProfit = Helper.getJSONDouble(jso, "takeProfit");
+            double stopLoss = Helper.getJSONDouble(jso, "stopLoss");
+            String takeProfit2show = takeProfit > 0.0 ? takeProfit + "" : "";
+            String stopLoss2show = stopLoss > 0.0 ? stopLoss + "" : "";
+            double price = Helper.getJSONDouble(jso, "price");
+
+            String rowData[] = {time, login, position, symbol, orderTypeName, volume + "", takeProfit2show, stopLoss2show, price + ""};
             arraylist.add(jso);
             tableModel.addRow(rowData);
         }

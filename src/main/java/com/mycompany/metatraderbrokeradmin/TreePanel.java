@@ -221,14 +221,19 @@ public class TreePanel extends javax.swing.JPanel {
 
         DefaultMutableTreeNode newGroup = new DefaultMutableTreeNode("New Group");
         DefaultMutableTreeNode newGroupCategory = new DefaultMutableTreeNode("New Group Category");
+        DefaultMutableTreeNode exportGroupConfig = new DefaultMutableTreeNode("Export Group Config");
 
         groups.add(newGroup);
         groups.add(newGroupCategory);
+        groups.add(exportGroupConfig);
         DefaultMutableTreeNode newSymbol = new DefaultMutableTreeNode("New Symbol Group");
 
         DefaultMutableTreeNode bulkUpload = new DefaultMutableTreeNode("Upload Symbols");
+        DefaultMutableTreeNode exportSymbolConfigs = new DefaultMutableTreeNode("Export Symbol Config");
+
         symbols.add(newSymbol);
         symbols.add(bulkUpload);
+        symbols.add(exportSymbolConfigs);
         tree = new JTree(top);
         tree.setCellRenderer(new MyCustomRenderer());
 
@@ -436,6 +441,10 @@ public class TreePanel extends javax.swing.JPanel {
                     createSymbolCategoryPopup(manager, "ROOT");
                 } else if (selectedNode.equalsIgnoreCase("Upload Symbols")) {
                     new SymbolBulkUpload().setVisible(true);
+                } else if (selectedNode.equalsIgnoreCase("Export Symbol Config")) {
+                    downloadSymbolConfigPopup(exportSymbolConfigs);
+                } else if (selectedNode.equalsIgnoreCase("Export Group Config")) {
+                    downloadSymbolConfigPopup(exportGroupConfig);
                 } else {
                     boolean isFound = false;
                     for (int i = 0; i < groupList.size(); i++) {
@@ -620,6 +629,22 @@ public class TreePanel extends javax.swing.JPanel {
             System.out.println("Exception occurred while creating category: " + iox.getMessage());
         }
         // DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(categoryName);
+    }
+
+    private void downloadSymbolConfigPopup(DefaultMutableTreeNode manager) {
+        Object[] options = {"CSV", "JSON"};
+        int choice = JOptionPane.showOptionDialog(
+                null,
+                "Do you want to download configs?",
+                "Download ", // Dialog title 
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.WARNING_MESSAGE,
+                null,
+                options,
+                null
+        );
+        System.out.println("config: " + choice);
+//        JOptionPane.showMessageDialog(this, downloadType);
     }
 
     private void createGroupCategoryPopup(String HCategory) {
